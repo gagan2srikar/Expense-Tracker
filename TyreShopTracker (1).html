@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tyre Shop Profit Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222222;
+  --surface3: #2a2a2a;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --text2: #999;
+  --text3: #555;
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.12);
+  --green-border: rgba(34,197,94,0.3);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.brand {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-icon {
+  width: 36px; height: 36px;
+  background: var(--green);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+}
+.brand-icon svg { color: #000; }
+.brand-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+.brand-sub { font-size: 11px; color: var(--text3); margin-top: 1px; font-family: 'DM Mono', monospace; }
+
+.nav { padding: 12px 10px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  transition: all .15s;
+  margin-bottom: 2px;
+  user-select: none;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.nav-item svg { flex-shrink: 0; }
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+}
+
+.main { flex: 1; overflow-y: auto; background: var(--bg); }
+.main-inner { max-width: 900px; margin: 0 auto; padding: 32px 28px; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── TYPOGRAPHY ── */
+.page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.page-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+/* ── METRIC CARDS ── */
+.metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.metric-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.metric-value { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; font-family: 'DM Mono', monospace; }
+.metric-value.green { color: var(--green); }
+.metric-value.blue { color: var(--blue); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.card-body { padding: 20px; }
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── ADD SALE ROW ── */
+.add-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ── SEARCH ── */
+.search-wrap { position: relative; flex: 2; min-width: 180px; }
+.search-input {
+  width: 100%; padding: 9px 10px 9px 34px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border .15s;
+}
+.search-input:focus { outline: none; border-color: var(--border2); }
+.search-input::placeholder { color: var(--text3); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+.dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  z-index: 300; overflow: hidden; display: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.dropdown.open { display: block; }
+.drop-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; transition: background .1s;
+}
+.drop-item:last-child { border-bottom: none; }
+.drop-item:hover, .drop-item.foc { background: var(--surface3); }
+.drop-empty { padding: 12px; font-size: 13px; color: var(--text3); text-align: center; }
+.drop-name { flex: 1; font-weight: 500; }
+.drop-cost { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* ── INPUTS ── */
+input[type=number], input[type=text], input[type=date], select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  padding: 9px 10px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border .15s;
+}
+input[type=number]:focus, input[type=text]:focus, input[type=date]:focus, select:focus { outline: none; border-color: var(--border2); }
+input[type=number]::placeholder, input[type=text]::placeholder { color: var(--text3); }
+select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+
+/* ── SELECTED ITEM BAR ── */
+.sel-bar {
+  display: none; align-items: center; gap: 8px;
+  margin-top: 10px; padding: 9px 12px;
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  animation: fadeIn .2s ease;
+}
+.sel-bar-name { font-weight: 500; color: var(--green); }
+.sel-bar-cost { font-size: 12px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.sel-clear { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; line-height: 1; }
+.sel-clear:hover { color: var(--red); }
+
+/* ── PROFIT PILL ── */
+.profit-pill {
+  display: inline-flex; align-items: center;
+  padding: 6px 12px; border-radius: 99px;
+  font-size: 12px; font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap; transition: all .2s;
+}
+.pill-neutral { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.pill-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.pill-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 9px 18px; font-size: 13px; font-weight: 600;
+  border-radius: var(--radius-sm); cursor: pointer;
+  border: 1px solid transparent; transition: all .15s;
+  font-family: 'DM Sans', sans-serif; white-space: nowrap;
+}
+.btn-primary { background: var(--green); color: #000; }
+.btn-primary:hover { background: #16a34a; }
+.btn-ghost { background: transparent; color: var(--text2); border-color: var(--border); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-danger { background: transparent; color: var(--red); border-color: rgba(239,68,68,0.3); }
+.btn-danger:hover { background: var(--red-dim); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 99px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.badge-tyre { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+.badge-tube { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+
+/* ── TABLE ── */
+.sales-table { width: 100%; }
+.t-head {
+  display: grid;
+  grid-template-columns: 32px 1fr 80px 80px 50px 90px 36px;
+  padding: 9px 18px;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+.t-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 80px 80px 50px 90px 36px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  font-size: 13px;
+  transition: background .1s;
+}
+.t-row:last-child { border-bottom: none; }
+.t-row:hover { background: var(--surface2); }
+.t-num { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 11px; }
+.t-item { display: flex; align-items: center; gap: 8px; }
+.t-item-name { font-weight: 500; }
+.t-price { text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); }
+.t-profit { text-align: right; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; }
+.t-del { display: flex; justify-content: center; }
+.del-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; border-radius: 4px; padding: 2px 5px; transition: all .1s; }
+.del-btn:hover { color: var(--red); background: var(--red-dim); }
+.empty-state { padding: 48px; text-align: center; color: var(--text3); font-size: 13px; }
+
+/* ── BREAKDOWN BAR ── */
+.breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.breakdown-labels { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.breakdown-label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.breakdown-dot { width: 8px; height: 8px; border-radius: 2px; }
+.breakdown-bar { height: 6px; border-radius: 99px; background: var(--surface3); overflow: hidden; display: flex; }
+.bar-seg { height: 100%; transition: width .4s ease; }
+.breakdown-hint { font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+/* ── SUMMARY CARD ── */
+.summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.summary-row:last-child { border-bottom: none; }
+.summary-label { color: var(--text2); }
+.summary-total { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; font-size: 15px; font-weight: 600; }
+.summary-total-val { font-size: 20px; font-family: 'DM Mono', monospace; color: var(--green); }
+
+/* ── HISTORY ── */
+.hist-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-row:hover { background: var(--surface2); }
+.hist-date-block { min-width: 36px; text-align: center; }
+.hist-day { font-size: 22px; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; color: var(--text); }
+.hist-month { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.hist-info { flex: 1; }
+.hist-name { font-weight: 500; font-size: 14px; }
+.hist-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.hist-amount { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 600; color: var(--green); }
+.hist-amount.neg { color: var(--red); }
+.hist-chevron { color: var(--text3); }
+.today-tag {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border);
+  padding: 1px 6px; border-radius: 99px; margin-left: 6px;
+}
+
+/* ── DETAIL VIEW ── */
+.detail-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text2); cursor: pointer;
+  margin-bottom: 20px; padding: 6px 0;
+  transition: color .15s;
+}
+.detail-back:hover { color: var(--text); }
+
+/* ── ADMIN ── */
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block; }
+.form-control { width: 100%; }
+.cat-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.cat-row:last-child { border-bottom: none; }
+.cat-name { font-weight: 500; flex: 1; }
+.cat-cost { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--amber); }
+
+/* ── ALLTIME ── */
+.alltime-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 16px; }
+
+/* ── TOPBAR ── */
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.panel.active { animation: fadeIn .2s ease; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 99px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface2); border: 1px solid var(--green-border);
+  color: var(--green); padding: 12px 18px;
+  border-radius: var(--radius); font-size: 13px; font-weight: 500;
+  z-index: 999; animation: toastIn .3s ease;
+  display: none;
+}
+@keyframes toastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── HIGHLIGHT ── */
+mark { background: rgba(245,158,11,0.25); color: var(--amber); border-radius: 2px; padding: 0 1px; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── MOBILE HAMBURGER TOPBAR ── */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.mobile-brand { display: flex; align-items: center; gap: 10px; }
+.mobile-brand-name { font-size: 15px; font-weight: 600; }
+.hamburger-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: background .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.hamburger-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* ── SIDEBAR OVERLAY ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 400;
+  backdrop-filter: blur(2px);
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 300;
+  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+}
+.bottom-nav-inner {
+  display: flex; justify-content: space-around;
+}
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 20px;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  transition: color .15s;
+  flex: 1;
+}
+.bottom-nav-item svg { transition: color .15s; }
+.bottom-nav-item.active { color: var(--green); }
+.bottom-nav-item.active svg { color: var(--green); }
+
+@media (max-width: 640px) {
+  /* Whole page becomes a vertical flex column */
+  body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  /* Mobile topbar: always visible at top */
+  .mobile-topbar {
+    display: flex;
+    flex-shrink: 0;
+    position: relative; /* no longer sticky — it's first in flow */
+    z-index: 200;
+  }
+
+  /* App row sits below topbar, fills remaining space */
+  .app {
+    flex: 1;
+    height: 0; /* let flex control height */
+    overflow: hidden;
+  }
+
+  /* Sidebar: slide-in drawer from left */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 500;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    width: 260px;
+    min-width: 260px;
+    box-shadow: 8px 0 32px rgba(0,0,0,0.55);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+
+  /* Main scrolls inside the row */
+  .main { flex: 1; overflow-y: auto; padding-bottom: 72px; }
+  .main-inner { padding: 20px 16px; }
+
+  /* Bottom nav */
+  .bottom-nav { display: flex; }
+
+  /* Grid adjustments */
+  .metric-grid { grid-template-columns: repeat(2,1fr); }
+  .breakdown-grid { grid-template-columns: 1fr; }
+  .admin-grid { grid-template-columns: 1fr; }
+  .alltime-grid { grid-template-columns: repeat(2,1fr); }
+  .t-head, .t-row { grid-template-columns: 28px 1fr 60px 60px 36px; }
+  .t-head > *:nth-child(4), .t-row > *:nth-child(4),
+  .t-head > *:nth-child(5), .t-row > *:nth-child(5) { display: none; }
+
+  /* Toast above bottom nav */
+  .toast { bottom: 88px; right: 16px; left: 16px; text-align: center; }
+
+  /* Add row stacking */
+  .add-row { flex-direction: column; align-items: stretch; }
+  .add-row > * { width: 100% !important; }
+  .add-row input[type=number] { width: 100% !important; }
+  .add-row > div { justify-content: space-between; }
+  .btn { width: 100%; justify-content: center; }
+  .topbar { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .topbar-actions { width: 100%; }
+  .topbar-actions .btn { flex: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE TOP BAR -->
+<div class="mobile-topbar">
+  <div class="mobile-brand">
+    <div class="brand-icon" style="width:30px;height:30px;margin:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+    </div>
+    <span class="mobile-brand-name">Tyre Shop</span>
+  </div>
+  <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Menu">
+    <svg id="hamburger-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <svg id="close-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+        </div>
+        <div class="brand-name">Tyre Shop</div>
+        <div class="brand-sub">Profit Tracker</div>
+      </div>
+      <button onclick="closeMobileSidebar()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;margin-top:4px;border-radius:4px" aria-label="Close menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPanel('sales')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Daily Sales
+      </div>
+      <div class="nav-item" onclick="showPanel('history')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        History
+      </div>
+      <div class="nav-item" onclick="showPanel('admin')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Admin Setup
+      </div>
+    </nav>
+    <div class="sidebar-footer" id="sb-date"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-inner">
+
+      <!-- ═══ SALES PANEL ═══ -->
+      <div class="panel active" id="panel-sales">
+        <div class="topbar">
+          <div>
+            <div class="page-title">Today's Sales</div>
+            <div class="page-sub" id="sales-date-label"></div>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-ghost btn-sm" onclick="clearToday()">Clear day</button>
+            <button class="btn btn-primary btn-sm" onclick="saveDay()">Save day ↓</button>
+          </div>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Tyres Sold</div>
+            <div class="metric-value" id="m-tyre">0</div>
+            <div class="metric-sub">items</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Tubes Sold</div>
+            <div class="metric-value" id="m-tube">0</div>
+            <div class="metric-sub">items</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Revenue</div>
+            <div class="metric-value blue" id="m-rev">₹0</div>
+            <div class="metric-sub">collected</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Net Profit</div>
+            <div class="metric-value green" id="m-profit">₹0</div>
+            <div class="metric-sub">earned today</div>
+          </div>
+        </div>
+
+        <!-- Add sale -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Record a Sale</span>
+          </div>
+          <div class="card-body">
+            <div class="add-row">
+              <div class="search-wrap" id="search-wrap">
+                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input class="search-input" id="search-inp" type="text" placeholder="Search by brand or size…" autocomplete="off"
+                  oninput="onSearch()" onfocus="openDrop()" onkeydown="onKey(event)"/>
+                <div class="dropdown" id="dropdown"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
+                <span style="font-size:12px;color:var(--text3)">Sell ₹</span>
+                <input type="number" id="sell-inp" style="width:100px" placeholder="0" min="0" oninput="recalc()"/>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
+                <span style="font-size:12px;color:var(--text3)">Qty</span>
+                <input type="number" id="qty-inp" style="width:64px" value="1" min="1" oninput="recalc()"/>
+              </div>
+              <span class="profit-pill pill-neutral" id="profit-pill">Profit: —</span>
+              <button class="btn btn-primary" onclick="addSale()">+ Add</button>
+            </div>
+            <div class="sel-bar" id="sel-bar">
+              <span id="sel-badge" class="badge badge-tyre">Tyre</span>
+              <span class="sel-bar-name" id="sel-name"></span>
+              <span class="sel-bar-cost" id="sel-cost"></span>
+              <button class="sel-clear" onclick="clearSel()">×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales table -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Sales Log</span>
+            <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace" id="entry-count">0 entries</span>
+          </div>
+          <div class="t-head">
+            <div>#</div><div>Item</div>
+            <div style="text-align:right">Buy</div>
+            <div style="text-align:right">Sell</div>
+            <div style="text-align:right">Qty</div>
+            <div style="text-align:right">Profit</div>
+            <div></div>
+          </div>
+          <div id="sales-body"><div class="empty-state">No sales yet — search and add an item above</div></div>
+        </div>
+
+        <!-- Bottom breakdown -->
+        <div class="breakdown-grid">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Profit Breakdown</span></div>
+            <div class="card-body">
+              <div class="breakdown-labels">
+                <div class="breakdown-label">
+                  <div class="breakdown-dot" style="background:var(--blue)"></div>
+                  <span style="color:var(--text2)">Tyres</span>
+                  <span style="font-weight:600;font-family:'DM Mono',monospace" id="b-tyre">₹0</span>
+                </div>
+                <div class="breakdown-label">
+                  <div class="breakdown-dot" style="background:var(--green)"></div>
+                  <span style="color:var(--text2)">Tubes</span>
+                  <span style="font-weight:600;font-family:'DM Mono',monospace" id="b-tube">₹0</span>
+                </div>
+              </div>
+              <div class="breakdown-bar">
+                <div class="bar-seg" style="background:var(--blue);width:0%" id="bar-tyre"></div>
+                <div class="bar-seg" style="background:var(--green);width:0%" id="bar-tube"></div>
+              </div>
+              <div class="breakdown-hint" id="bar-lbl">Add sales to see breakdown</div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Day Summary</span></div>
+            <div class="card-body">
+              <div class="summary-row"><span class="summary-label">Total items</span><span id="ds-items" style="font-family:'DM Mono',monospace">0</span></div>
+              <div class="summary-row"><span class="summary-label">Buying cost</span><span id="ds-cost" style="color:var(--red);font-family:'DM Mono',monospace">₹0</span></div>
+              <div class="summary-row"><span class="summary-label">Revenue</span><span id="ds-rev" style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span></div>
+              <div class="summary-total"><span>Net Profit</span><span class="summary-total-val" id="ds-profit">₹0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ HISTORY PANEL ═══ -->
+      <div class="panel" id="panel-history">
+
+        <div id="hist-list">
+          <div class="topbar">
+            <div>
+              <div class="page-title">Profit History</div>
+              <div class="page-sub">All saved days — tap any row to see details</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div id="hist-body"><div class="empty-state">No saved days yet.<br>Go to Daily Sales and click "Save day" at end of day.</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">All-Time Summary</span></div>
+            <div class="card-body">
+              <div class="alltime-grid">
+                <div class="metric-card">
+                  <div class="metric-label">Days Recorded</div>
+                  <div class="metric-value" id="at-days">0</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Total Revenue</div>
+                  <div class="metric-value blue" id="at-rev">₹0</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Total Profit</div>
+                  <div class="metric-value green" id="at-profit">₹0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="hist-detail" style="display:none">
+          <div class="detail-back" onclick="closeDetail()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to History
+          </div>
+          <div class="topbar">
+            <div>
+              <div class="page-title" id="det-title"></div>
+              <div class="page-sub" id="det-sub"></div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteDay()">Delete day</button>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card"><div class="metric-label">Tyres Sold</div><div class="metric-value" id="det-tyre">0</div></div>
+            <div class="metric-card"><div class="metric-label">Tubes Sold</div><div class="metric-value" id="det-tube">0</div></div>
+            <div class="metric-card"><div class="metric-label">Revenue</div><div class="metric-value blue" id="det-rev">₹0</div></div>
+            <div class="metric-card"><div class="metric-label">Profit</div><div class="metric-value green" id="det-profit">₹0</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Sales Log</span></div>
+            <div class="t-head"><div>#</div><div>Item</div><div style="text-align:right">Buy</div><div style="text-align:right">Sell</div><div style="text-align:right">Qty</div><div style="text-align:right">Profit</div><div></div></div>
+            <div id="det-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ADMIN PANEL ═══ -->
+      <div class="panel" id="panel-admin">
+        <div class="topbar">
+          <div>
+            <div class="page-title">Admin Setup</div>
+            <div class="page-sub">Manage your item catalogue — set buying prices once</div>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Add New Item</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Item type</label>
+                <select id="a-type" class="form-control">
+                  <option value="tyre">Tyre</option>
+                  <option value="tube">Tube</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Brand</label>
+                <select id="a-brand" class="form-control">
+                  <option>MRF</option><option>Apollo</option><option>CEAT</option><option>TVS</option><option>Bridgestone</option><option>JK Tyre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Model / Size</label>
+                <input type="text" id="a-model" class="form-control" placeholder="e.g. 3.00-18"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Buying Price (₹)</label>
+                <input type="number" id="a-cost" class="form-control" placeholder="e.g. 1200" min="0"/>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="addItem()">+ Add to Catalogue</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:0;max-height:480px;overflow-y:auto">
+            <div class="card-header">
+              <span class="card-title">Catalogue</span>
+              <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace" id="cat-count">0 items</span>
+            </div>
+            <div id="cat-body"><div class="empty-state" style="padding:32px">No items yet</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-inner -->
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+const STORAGE_KEY = 'tyreshop_v1';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ catalogue, history, todaySales }));
+}
+
+let stored = loadData();
+let catalogue = stored?.catalogue || [
+  {id:1,type:'tyre',brand:'MRF',model:'3.00-18',cost:1200},
+  {id:2,type:'tyre',brand:'MRF',model:'2.75-18',cost:950},
+  {id:3,type:'tyre',brand:'MRF',model:'2.75-17',cost:900},
+  {id:4,type:'tyre',brand:'Apollo',model:'3.00-18',cost:1100},
+  {id:5,type:'tyre',brand:'Apollo',model:'2.75-18',cost:1020},
+  {id:6,type:'tyre',brand:'CEAT',model:'3.00-17',cost:1050},
+  {id:7,type:'tyre',brand:'TVS',model:'3.00-18',cost:950},
+  {id:8,type:'tube',brand:'MRF',model:'3.00-18',cost:180},
+  {id:9,type:'tube',brand:'MRF',model:'2.75-18',cost:160},
+  {id:10,type:'tube',brand:'Apollo',model:'3.00-18',cost:160},
+  {id:11,type:'tube',brand:'TVS',model:'2.75-18',cost:140},
+];
+let history = stored?.history || {};
+let todaySales = stored?.todaySales || [];
+let nextCatId = catalogue.reduce((m,i)=>Math.max(m,i.id),0) + 1;
+let nextSaleId = todaySales.reduce((m,s)=>Math.max(m,s.id),0) + 1;
+let selectedItem = null, focusIdx = -1, filtered = [], activeDetailKey = null;
+
+// ─── UTILS ───
+const fmt = n => Math.round(n).toLocaleString('en-IN');
+const todayKey = () => new Date().toISOString().slice(0,10);
+const fmtDate = k => {
+  const d = new Date(k + 'T00:00:00');
+  return d.toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+};
+const fmtShort = k => {
+  const d = new Date(k + 'T00:00:00');
+  return { day: d.getDate(), month: d.toLocaleString('en-IN',{month:'short'}), year: d.getFullYear() };
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.style.display='none', 2500);
+}
+
+// ─── INIT DATES ───
+const now = new Date();
+document.getElementById('sales-date-label').textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('sb-date').textContent = now.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+
+// ─── PANEL SWITCHING ───
+function showPanel(name) {
+  ['sales','history','admin'].forEach((p,i) => {
+    document.getElementById('panel-'+p).classList.toggle('active', p===name);
+    document.querySelectorAll('.nav-item')[i].classList.toggle('active', p===name);
+  });
+  // Update bottom nav active state
+  document.querySelectorAll('.bottom-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.panel === name);
+  });
+  // Close mobile sidebar if open
+  closeMobileSidebar();
+  if(name==='history') { closeDetail(); renderHistory(); }
+  if(name==='admin') renderCatalogue();
+}
+
+// ─── SEARCH ───
+function hl(text, q) {
+  if(!q) return text;
+  return text.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'), '<mark>$1</mark>');
+}
+const itemLabel = i => `${i.brand} ${i.model} (${i.type==='tyre'?'Tyre':'Tube'})`;
+
+function onSearch() { focusIdx=-1; openDrop(); }
+
+function openDrop() {
+  const q = document.getElementById('search-inp').value.trim().toLowerCase();
+  const q2 = document.getElementById('search-inp').value.trim();
+  filtered = q ? catalogue.filter(i => itemLabel(i).toLowerCase().includes(q)) : [...catalogue];
+  const dd = document.getElementById('dropdown');
+  dd.innerHTML = filtered.length
+    ? filtered.map((item,i)=>`
+        <div class="drop-item" id="di-${i}" onmousedown="selItem(${item.id})">
+          <span class="badge ${item.type==='tyre'?'badge-tyre':'badge-tube'}">${item.type==='tyre'?'Tyre':'Tube'}</span>
+          <span class="drop-name">${hl(item.brand+' '+item.model, q2)}</span>
+          <span class="drop-cost">Buy ₹${fmt(item.cost)}</span>
+        </div>`).join('')
+    : '<div class="drop-empty">No items found</div>';
+  dd.classList.add('open');
+}
+
+function closeDrop() { document.getElementById('dropdown').classList.remove('open'); focusIdx=-1; }
+document.addEventListener('click', e => { if(!document.getElementById('search-wrap').contains(e.target)) closeDrop(); });
+
+function onKey(e) {
+  if(!document.getElementById('dropdown').classList.contains('open')) return;
+  if(e.key==='ArrowDown') { e.preventDefault(); focusIdx=Math.min(focusIdx+1,filtered.length-1); upFoc(); }
+  else if(e.key==='ArrowUp') { e.preventDefault(); focusIdx=Math.max(focusIdx-1,0); upFoc(); }
+  else if(e.key==='Enter') { e.preventDefault(); if(focusIdx>=0&&filtered[focusIdx]) selItem(filtered[focusIdx].id); else if(filtered.length===1) selItem(filtered[0].id); }
+  else if(e.key==='Escape') closeDrop();
+}
+function upFoc() { document.querySelectorAll('.drop-item').forEach((el,i)=>el.classList.toggle('foc',i===focusIdx)); }
+
+function selItem(id) {
+  selectedItem = catalogue.find(i=>i.id===id);
+  document.getElementById('search-inp').value = selectedItem.brand+' '+selectedItem.model;
+  closeDrop();
+  const bar = document.getElementById('sel-bar');
+  bar.style.display='flex';
+  document.getElementById('sel-badge').textContent = selectedItem.type==='tyre'?'Tyre':'Tube';
+  document.getElementById('sel-badge').className='badge '+(selectedItem.type==='tyre'?'badge-tyre':'badge-tube');
+  document.getElementById('sel-name').textContent = selectedItem.brand+' '+selectedItem.model;
+  document.getElementById('sel-cost').textContent = 'Buy ₹'+fmt(selectedItem.cost);
+  document.getElementById('sell-inp').value='';
+  document.getElementById('qty-inp').value=1;
+  setPill('n','Profit: —');
+  document.getElementById('sell-inp').focus();
+}
+
+function clearSel() {
+  selectedItem=null;
+  document.getElementById('search-inp').value='';
+  document.getElementById('sel-bar').style.display='none';
+  setPill('n','Profit: —');
+}
+
+function setPill(c,t) {
+  const p=document.getElementById('profit-pill');
+  p.textContent=t;
+  p.className='profit-pill '+(c==='g'?'pill-green':c==='r'?'pill-red':'pill-neutral');
+}
+
+function recalc() {
+  if(!selectedItem) return;
+  const sell=parseInt(document.getElementById('sell-inp').value)||0;
+  const qty=parseInt(document.getElementById('qty-inp').value)||1;
+  if(!sell){setPill('n','Profit: —');return;}
+  const p=(sell-selectedItem.cost)*qty;
+  setPill(p>=0?'g':'r',(qty>1?`×${qty} = `:'')+( p>=0?'Profit: ₹':'Loss: ₹')+fmt(Math.abs(p)));
+}
+
+// ─── SALES CRUD ───
+function addSale() {
+  if(!selectedItem){alert('Search and select an item first');return;}
+  const sell=parseInt(document.getElementById('sell-inp').value);
+  if(!sell||sell<=0){alert('Enter the selling price');return;}
+  const qty=parseInt(document.getElementById('qty-inp').value)||1;
+  const profit=(sell-selectedItem.cost)*qty;
+  todaySales.push({
+    id:nextSaleId++, type:selectedItem.type, brand:selectedItem.brand,
+    model:selectedItem.model, cost:selectedItem.cost, sell, qty,
+    profit, revenue:sell*qty, totalCost:selectedItem.cost*qty
+  });
+  clearSel();
+  document.getElementById('sell-inp').value='';
+  document.getElementById('qty-inp').value=1;
+  setPill('n','Profit: —');
+  saveData();
+  renderSales();
+}
+
+function delSale(id) {
+  if(!confirm('Remove this sale?')) return;
+  todaySales=todaySales.filter(s=>s.id!==id);
+  saveData(); renderSales();
+}
+
+function renderSales() {
+  const body=document.getElementById('sales-body');
+  if(!todaySales.length) {
+    body.innerHTML='<div class="empty-state">No sales yet — search and add an item above</div>';
+    document.getElementById('entry-count').textContent='0 entries';
+  } else {
+    body.innerHTML=todaySales.map((s,i)=>`
+      <div class="t-row">
+        <div class="t-num">${i+1}</div>
+        <div class="t-item">
+          <span class="badge ${s.type==='tyre'?'badge-tyre':'badge-tube'}">${s.type==='tyre'?'T':'Tb'}</span>
+          <span class="t-item-name">${s.brand} ${s.model}</span>
+        </div>
+        <div class="t-price">₹${fmt(s.cost)}</div>
+        <div class="t-price" style="color:var(--blue)">₹${fmt(s.sell)}</div>
+        <div class="t-price">×${s.qty}</div>
+        <div class="t-profit" style="color:${s.profit>=0?'var(--green)':'var(--red)'}">${s.profit>=0?'+':'-'}₹${fmt(Math.abs(s.profit))}</div>
+        <div class="t-del"><button class="del-btn" onclick="delSale(${s.id})">×</button></div>
+      </div>`).join('');
+    document.getElementById('entry-count').textContent=todaySales.length+' entr'+(todaySales.length===1?'y':'ies');
+  }
+
+  const tyres=todaySales.filter(s=>s.type==='tyre');
+  const tubes=todaySales.filter(s=>s.type==='tube');
+  const tqty=tyres.reduce((a,s)=>a+s.qty,0), bqty=tubes.reduce((a,s)=>a+s.qty,0);
+  const tp=tyres.reduce((a,s)=>a+s.profit,0), bp=tubes.reduce((a,s)=>a+s.profit,0);
+  const totalRev=todaySales.reduce((a,s)=>a+s.revenue,0);
+  const totalCost=todaySales.reduce((a,s)=>a+s.totalCost,0);
+  const totalProfit=tp+bp, totalItems=todaySales.reduce((a,s)=>a+s.qty,0);
+
+  document.getElementById('m-tyre').textContent=tqty;
+  document.getElementById('m-tube').textContent=bqty;
+  document.getElementById('m-rev').textContent='₹'+fmt(totalRev);
+  document.getElementById('m-profit').textContent='₹'+fmt(totalProfit);
+  document.getElementById('b-tyre').textContent='₹'+fmt(tp);
+  document.getElementById('b-tube').textContent='₹'+fmt(bp);
+  document.getElementById('ds-items').textContent=totalItems;
+  document.getElementById('ds-cost').textContent='₹'+fmt(totalCost);
+  document.getElementById('ds-rev').textContent='₹'+fmt(totalRev);
+  document.getElementById('ds-profit').textContent='₹'+fmt(totalProfit);
+
+  if(totalProfit>0) {
+    const tp2=Math.max(0,Math.round(tp/totalProfit*100));
+    const bp2=Math.max(0,Math.round(bp/totalProfit*100));
+    document.getElementById('bar-tyre').style.width=tp2+'%';
+    document.getElementById('bar-tube').style.width=bp2+'%';
+    document.getElementById('bar-lbl').textContent=`Tyres ${tp2}% · Tubes ${bp2}% of today's profit`;
+  } else {
+    document.getElementById('bar-tyre').style.width='0%';
+    document.getElementById('bar-tube').style.width='0%';
+    document.getElementById('bar-lbl').textContent='Add sales to see breakdown';
+  }
+}
+
+function saveDay() {
+  if(!todaySales.length){showToast('No sales to save today!');return;}
+  const key=todayKey();
+  history[key]=JSON.parse(JSON.stringify(todaySales));
+  saveData();
+  showToast('Day saved! View it in History tab.');
+}
+
+function clearToday() {
+  if(!todaySales.length) return;
+  if(!confirm('Clear all today\'s sales?')) return;
+  todaySales=[]; saveData(); renderSales();
+}
+
+// ─── HISTORY ───
+function renderHistory() {
+  const keys=Object.keys(history).sort((a,b)=>b.localeCompare(a));
+  const body=document.getElementById('hist-body');
+  const today=todayKey();
+
+  if(!keys.length) {
+    body.innerHTML='<div class="empty-state">No saved days yet.<br>Go to Daily Sales and click "Save day" at end of day.</div>';
+    ['at-days','at-rev','at-profit'].forEach(id=>document.getElementById(id).textContent=id==='at-days'?'0':'₹0');
+    return;
+  }
+
+  body.innerHTML=keys.map(k=>{
+    const sales=history[k];
+    const profit=sales.reduce((a,s)=>a+s.profit,0);
+    const rev=sales.reduce((a,s)=>a+s.revenue,0);
+    const tqty=sales.filter(s=>s.type==='tyre').reduce((a,s)=>a+s.qty,0);
+    const bqty=sales.filter(s=>s.type==='tube').reduce((a,s)=>a+s.qty,0);
+    const dt=fmtShort(k);
+    return `
+      <div class="hist-row" onclick="openDetail('${k}')">
+        <div class="hist-date-block">
+          <div class="hist-day">${dt.day}</div>
+          <div class="hist-month">${dt.month}</div>
+        </div>
+        <div class="hist-info">
+          <div class="hist-name">
+            ${new Date(k+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long'})}
+            ${k===today?'<span class="today-tag">Today</span>':''}
+          </div>
+          <div class="hist-meta">${tqty} tyre${tqty!==1?'s':''} · ${bqty} tube${bqty!==1?'s':''} · Revenue ₹${fmt(rev)}</div>
+        </div>
+        <div class="hist-amount ${profit<0?'neg':''}">₹${fmt(profit)}</div>
+        <div class="hist-chevron">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>`;
+  }).join('');
+
+  const allSales=Object.values(history).flat();
+  document.getElementById('at-days').textContent=keys.length;
+  document.getElementById('at-rev').textContent='₹'+fmt(allSales.reduce((a,s)=>a+s.revenue,0));
+  document.getElementById('at-profit').textContent='₹'+fmt(allSales.reduce((a,s)=>a+s.profit,0));
+}
+
+function openDetail(key) {
+  activeDetailKey=key;
+  const sales=history[key];
+  document.getElementById('hist-list').style.display='none';
+  document.getElementById('hist-detail').style.display='block';
+  document.getElementById('det-title').textContent=fmtDate(key);
+  const profit=sales.reduce((a,s)=>a+s.profit,0);
+  const rev=sales.reduce((a,s)=>a+s.revenue,0);
+  const tqty=sales.filter(s=>s.type==='tyre').reduce((a,s)=>a+s.qty,0);
+  const bqty=sales.filter(s=>s.type==='tube').reduce((a,s)=>a+s.qty,0);
+  document.getElementById('det-tyre').textContent=tqty;
+  document.getElementById('det-tube').textContent=bqty;
+  document.getElementById('det-rev').textContent='₹'+fmt(rev);
+  document.getElementById('det-profit').textContent='₹'+fmt(profit);
+  document.getElementById('det-sub').textContent=`${sales.length} sale${sales.length!==1?'s':''} · Net profit ₹${fmt(profit)}`;
+  document.getElementById('det-body').innerHTML=sales.map((s,i)=>`
+    <div class="t-row">
+      <div class="t-num">${i+1}</div>
+      <div class="t-item">
+        <span class="badge ${s.type==='tyre'?'badge-tyre':'badge-tube'}">${s.type==='tyre'?'T':'Tb'}</span>
+        <span class="t-item-name">${s.brand} ${s.model}</span>
+      </div>
+      <div class="t-price">₹${fmt(s.cost)}</div>
+      <div class="t-price" style="color:var(--blue)">₹${fmt(s.sell)}</div>
+      <div class="t-price">×${s.qty}</div>
+      <div class="t-profit" style="color:${s.profit>=0?'var(--green)':'var(--red)'}">${s.profit>=0?'+':'-'}₹${fmt(Math.abs(s.profit))}</div>
+      <div></div>
+    </div>`).join('');
+}
+
+function closeDetail() {
+  activeDetailKey=null;
+  document.getElementById('hist-list').style.display='block';
+  document.getElementById('hist-detail').style.display='none';
+}
+
+function deleteDay() {
+  if(!activeDetailKey) return;
+  if(!confirm('Delete this day\'s data permanently?')) return;
+  delete history[activeDetailKey];
+  saveData(); closeDetail(); renderHistory();
+  showToast('Day deleted.');
+}
+
+// ─── ADMIN ───
+function addItem() {
+  const type=document.getElementById('a-type').value;
+  const brand=document.getElementById('a-brand').value;
+  const model=document.getElementById('a-model').value.trim();
+  const cost=parseInt(document.getElementById('a-cost').value);
+  if(!model){showToast('Enter model/size');return;}
+  if(!cost||cost<=0){showToast('Enter valid buying price');return;}
+  catalogue.push({id:nextCatId++,type,brand,model,cost});
+  document.getElementById('a-model').value='';
+  document.getElementById('a-cost').value='';
+  saveData(); renderCatalogue();
+  showToast('Item added to catalogue!');
+}
+
+function delItem(id) {
+  if(!confirm('Remove this item from catalogue?')) return;
+  catalogue=catalogue.filter(i=>i.id!==id);
+  saveData(); renderCatalogue();
+}
+
+function renderCatalogue() {
+  const body=document.getElementById('cat-body');
+  document.getElementById('cat-count').textContent=catalogue.length+' items';
+  if(!catalogue.length){body.innerHTML='<div class="empty-state" style="padding:32px">No items yet</div>';return;}
+  body.innerHTML=catalogue.map(i=>`
+    <div class="cat-row">
+      <span class="badge ${i.type==='tyre'?'badge-tyre':'badge-tube'}">${i.type==='tyre'?'Tyre':'Tube'}</span>
+      <span class="cat-name">${i.brand} ${i.model}</span>
+      <span class="cat-cost">₹${fmt(i.cost)}</span>
+      <button class="del-btn" onclick="delItem(${i.id})">×</button>
+    </div>`).join('');
+}
+
+// ─── MOBILE SIDEBAR ───
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+  document.getElementById('hamburger-icon').style.display = isOpen ? 'none' : 'block';
+  document.getElementById('close-icon').style.display = isOpen ? 'block' : 'none';
+}
+function closeMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  const hi = document.getElementById('hamburger-icon');
+  const ci = document.getElementById('close-icon');
+  if(hi) { hi.style.display = 'block'; ci.style.display = 'none'; }
+}
+
+// ─── INIT ───
+renderSales();
+renderCatalogue();
+</script>
+<!-- BOTTOM NAV (mobile only) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-item active" data-panel="sales" onclick="showPanel('sales')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Sales
+    </div>
+    <div class="bottom-nav-item" data-panel="history" onclick="showPanel('history')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      History
+    </div>
+    <div class="bottom-nav-item" data-panel="admin" onclick="showPanel('admin')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Admin
+    </div>
+  </div>
+</nav>
+
+</body>
+</html>
